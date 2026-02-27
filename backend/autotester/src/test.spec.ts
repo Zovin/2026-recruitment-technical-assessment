@@ -18,6 +18,11 @@ describe("Task 1", () => {
       expect(response.body).toStrictEqual({ msg: "Alpha Alfredo" });
     });
 
+    it("example2", async () => {
+      const response = await getTask1("   T   e   s   t   ");
+      expect(response.body).toStrictEqual({ msg: "T E S T" });
+    });
+
     it("error case", async () => {
       const response = await getTask1("");
       expect(response.status).toBe(400);
@@ -155,6 +160,100 @@ describe("Task 3", () => {
       expect(resp2.status).toBe(200);
 
       const resp3 = await getTask3("Skibidi");
+      expect(resp3.status).toBe(200);
+    });
+
+    // the names for the ingredient and recipes here 
+    // are the same with the previous tests, so it'll 
+    // give an error if i don't comment it out.
+
+    it("Bro cooked2", async () => {
+      const meatball = {
+        type: "recipe",
+        name: "Meatball",
+        requiredItems: [
+          {
+            name: "Beef",
+            quantity: 2
+          },
+          {
+            name: "Egg",
+            quantity: 1
+          }
+        ]
+      };  
+      const Pasta = {
+        type: "recipe",
+        name: "Pasta",
+        requiredItems: [
+          {
+            name: "Flour",
+            quantity: 3
+          },
+          {
+            name: "Egg",
+            quantity: 1
+          }
+        ]
+      };  
+
+      const skibidiSpaghetti = {
+        type: "recipe",
+        name: "Skibidi Spaghetti",
+        requiredItems: [
+          {
+            name: "Meatball",
+            quantity: 3
+          },
+          {
+            name: "Pasta",
+            "quantity": 1
+          },
+          {
+            name: "Tomato",
+            "quantity": 2
+          }
+        ]
+      };
+      
+      
+      let resp1 = await postEntry(meatball);
+      expect(resp1.status).toBe(200);
+      resp1 = await postEntry(Pasta);
+      expect(resp1.status).toBe(200);
+      resp1 = await postEntry(skibidiSpaghetti);
+      expect(resp1.status).toBe(200);
+
+      let resp2 = await postEntry({
+        type: "ingredient",
+        name: "Beef",
+        cookTime: 5,
+      });
+      expect(resp2.status).toBe(200);
+
+      resp2 = await postEntry({
+        type: "ingredient",
+        name: "Flour",
+        cookTime: 0,
+      });
+
+      expect(resp2.status).toBe(200);
+      resp2 = await postEntry({
+        type: "ingredient",
+        name: "Egg",
+        cookTime: 3,
+      });
+
+      resp2 = await postEntry({
+        type: "ingredient",
+        name: "Tomato",
+        cookTime: 2,
+      });
+      expect(resp2.status).toBe(200);
+
+      expect(resp2.status).toBe(200);
+
+      const resp3 = await getTask3("Skibidi Spaghetti");
       expect(resp3.status).toBe(200);
     });
   });
