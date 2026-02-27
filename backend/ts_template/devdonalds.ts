@@ -32,7 +32,7 @@ const app = express();
 app.use(express.json());
 
 // Store your recipes here!
-const cookbook: any = null;
+const cookbook: any = [];
 
 // Task 1 helper (don't touch)
 app.post("/parse", (req:Request, res:Response) => {
@@ -77,7 +77,7 @@ app.post("/entry", (req:Request, res:Response) => {
 const add_entry = (input: recipe | ingredient): void => {
   if (!(input.type === "ingredient" || input.type === "recipe")) {
     throw(HTTPError(400));
-  } else if (cookbook.find((i) => i.name === input.name)) {
+  } else if (cookbook.find((entry) => entry.name === input.name)) {
     throw(HTTPError(400));
   }
 
@@ -104,6 +104,58 @@ app.get("/summary", (req:Request, res:Request) => {
 
   res.status(200).send(get_summary(input));
 });
+
+const get_summary = (input: string): summary => {
+  let recipe: summary = cookbook.find((entry) => entry.name === input);
+  if (!recipe || recipe.type === "ingredient") {
+    throw (HTTPError(400));
+  }
+
+  let summary: summary = {...recipe}; // copy the recipe so we don't mutate the original file
+
+  summary.requiredItems = recursive_summary(summary.requiredItems);
+  summary.cookTime = 0;
+
+  for (const item of summary.requiredItems) {
+    summary.cookTime += 
+      cookbook.find((entry) => entry.name === item.name).cookTime * item.quantity
+  }
+
+  return summary;
+};
+
+const recursive_summary = (requiredItems: requiredItem[]): requiredItem[] => {
+  let result: requiredItem[] = [...requiredItems];
+
+  for (const item of requiredItems) {
+    const itemReference: cookbookEntry = cookbook.find((entry) => entry.name === item.name);
+    if (!itemReference) {
+      throw(HTTPError(400));
+    } else if (itemReference.type === "ingredient"){
+      
+    }
+    
+    const itemRequirements: requiredItem[] = recursive_summary((itemReference as recipe).requiredItems);
+    mergeRequiredItems(result, itemRequirements, item.quantity);
+
+    // remove recipe after inputting all the ingredients
+    result.splice(result.findIndex((temp) => temp.name === item.name), 1);
+  }
+
+  return result;
+};
+
+const mergeRequiredItems = (arr1: requiredItem[], arr2: requiredItem[], quantity: number) => {
+  for (const entry of arr2) {
+    const existing: requiredItem = arr1.find((it) => it.name === entry.name);
+
+    if (existing) {
+      existing.quantity += quantity * entry.quantity;
+    } else {
+      arr1.push({...entry, quantity: quantity * entry.quantity})
+    }
+  }
+}
 
 // =============================================================================
 // ==== DO NOT TOUCH ===========================================================
