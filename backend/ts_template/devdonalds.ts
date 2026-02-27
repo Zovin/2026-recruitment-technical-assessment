@@ -105,6 +105,7 @@ app.get("/summary", (req:Request, res:Request) => {
   res.status(200).send(get_summary(input));
 });
 
+// Takes in a recipe namee and returns the summary of the recipe
 const get_summary = (input: string): summary => {
   let recipe: summary = cookbook.find((entry) => entry.name === input);
   if (!recipe || recipe.type === "ingredient") {
@@ -116,6 +117,7 @@ const get_summary = (input: string): summary => {
   summary.requiredItems = recursive_summary(summary.requiredItems);
   summary.cookTime = 0;
 
+  // sums up the cookTime of the recipe
   for (const item of summary.requiredItems) {
     summary.cookTime += 
       cookbook.find((entry) => entry.name === item.name).cookTime * item.quantity
@@ -124,6 +126,7 @@ const get_summary = (input: string): summary => {
   return summary;
 };
 
+// recursively gets the list of all required items for the recipe
 const recursive_summary = (requiredItems: requiredItem[]): requiredItem[] => {
   let result: requiredItem[] = [...requiredItems];
 
@@ -132,7 +135,7 @@ const recursive_summary = (requiredItems: requiredItem[]): requiredItem[] => {
     if (!itemReference) {
       throw(HTTPError(400));
     } else if (itemReference.type === "ingredient"){
-      
+      continue;
     }
     
     const itemRequirements: requiredItem[] = recursive_summary((itemReference as recipe).requiredItems);
@@ -145,6 +148,7 @@ const recursive_summary = (requiredItems: requiredItem[]): requiredItem[] => {
   return result;
 };
 
+// merges the required items of 2 different recipes.
 const mergeRequiredItems = (arr1: requiredItem[], arr2: requiredItem[], quantity: number) => {
   for (const entry of arr2) {
     const existing: requiredItem = arr1.find((it) => it.name === entry.name);
